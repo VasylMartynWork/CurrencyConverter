@@ -11,6 +11,7 @@ using std::endl;
 using std::vector;
 
 string clrRes(string stToClr);
+string matchStrCodeToInt();
 
 int main() {
 	SetConsoleCP(1251);
@@ -20,7 +21,9 @@ int main() {
 	//std::cout << response.text << std::endl;
 	string b = response.text;
 	vector<string> s;
+	bool check;
 	int comco = 0;
+	string a = matchStrCodeToInt();
 	
 	int pos1 = 0;
 	int pos2 = 0;
@@ -30,7 +33,7 @@ int main() {
 	for (int i = 0; i < b.size(); i++) {
 		if (b[i] == ',')
 			comco++;
-		bool check;
+
 		if (s.size() < 3) {
 			check = comco == 5;
 		}
@@ -75,11 +78,22 @@ string clrRes(string stToClr) {
 		try {
 			stToClr.erase(stToClr.find("\""), 1);
 		}
-		catch(std::exception) {
+		catch (std::exception) {
 			break;
 		}
 	}
 	return stToClr;
+}
+
+string matchStrCodeToInt() {
+	string arr[] = {"UAH:980", "USD:840", "EUR:978"};
+	string a = "UAH";
+	for (string c : arr) {
+		if (c.find(a)) {
+			return c.substr(c.find(":") + 1, 3);
+		}
+	}
+	return a;
 }
 
 void temp() {
