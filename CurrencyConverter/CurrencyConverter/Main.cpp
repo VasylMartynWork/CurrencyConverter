@@ -29,8 +29,12 @@ int main() {
 	cin >> currfr;
 	cout << "Введіть валюту, в яку будете конвертувати: ";
 	cin >> currto;
-	cout << "Введіть кількість валюти яку хочете обміняти: ";
+	cout << "Введіть кількість валюти, яку хочете обміняти: ";
 	cin >> currval;
+	if (currval <= 0) {
+		cout << "Некоректно введена кількість валюти" << endl;
+		return 0;
+	}
 	currfr = matchStrCodeToInt(currfr);
 	currto = matchStrCodeToInt(currto);
 
@@ -59,27 +63,12 @@ int main() {
 		}*/
 }
 
-string inputAndOutput() {
-	string currfr;
-	string currto;
-	vector<string> data = formatedData();
-	int currval;
-	cout << "Введіть валюту, із якої будете конвертувати: ";
-	cin >> currfr;
-	cout << "Введіть валюту, в яку будете конвертувати: ";
-	cin >> currto;
-	cout << "Введіть кількість валюти яку хочете обміняти: ";
-	cin >> currval;
-	currfr = matchStrCodeToInt(currfr);
-	currto = matchStrCodeToInt(currto);
-}
-
 float convertedCurr(vector<string> data, string currfr, string currto, int currval) {
 	float t = 0;
 
 	for (string a : data) {
 		string rate;
-		if (a.find(currfr) && a.find(currto)) {
+		if (a.find(currfr) != -1 && a.find(currto) != -1) {
 			vector<string> elem;
 			int pos = 0;
 			
@@ -89,19 +78,23 @@ float convertedCurr(vector<string> data, string currfr, string currto, int currv
 					pos = i + 1;
 				}
 				if (i == a.size() - 1) {
-					elem.push_back(a.substr(pos, i - pos));
+					elem.push_back(a.substr(pos, i - pos + 1));
 				}
 			}
-			int f = a.find(currfr);
-			int g = a.find(currto);
-			if (a.find(currfr) > a.find(currto)) {
+
+			if (a.find(currfr) < a.find(currto)) {
 				rate = elem[3].substr(elem[3].find(":") + 1, elem[3].size() - elem[3].find(":"));
 				t = std::stod(rate);
 			}
 			else {
 				rate = elem[4].substr(elem[4].find(":") + 1, elem[4].size() - elem[4].find(":"));
 				t = std::stod(rate);
-				t = t / 100;
+				if (t >= 10) {
+					t = t / 100;
+				}
+				else {
+					t = currval - (std::stod(rate) - std::stod(elem[3].substr(elem[3].find(":") + 1, elem[3].size() - elem[3].find(":"))));
+				}
 			}
 			
 			break;
@@ -133,7 +126,8 @@ string clrRes(string stToClr) {
 string matchStrCodeToInt(string currCode) {
 	string arr[] = {"UAH:980", "USD:840", "EUR:978"};
 	for (string c : arr) {
-		if (c.find(currCode)) {
+		int te = c.find(currCode);
+		if (c.find(currCode) != -1) {
 			return c.substr(c.find(":") + 1, 3);
 		}
 	}
