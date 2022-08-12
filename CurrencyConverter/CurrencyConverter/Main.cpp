@@ -2,8 +2,6 @@
 #include <string>
 #include <cpr/cpr.h>
 #include <vector>
-#include <iomanip>
-#include <math.h>
 
 
 using std::cout;
@@ -11,56 +9,97 @@ using std::string;
 using std::cin;
 using std::endl;
 using std::vector;
+using std::getline;
 
 string clrRes(string stToClr);
 string matchStrCodeToInt(string currCode);
 vector<string> formatedData();
 float convertedCurr(vector<string> data, string currfr, string currto, int currval);
-string inputAndOutput();
+string repeat();
 
 int main() {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
+	vector<string> data = formatedData();
 	string currfr;
 	string currto;
-	vector<string> data = formatedData();
-	int currval;
-	cout << "Введіть валюту, із якої будете конвертувати: ";
-	cin >> currfr;
-	cout << "Введіть валюту, в яку будете конвертувати: ";
-	cin >> currto;
-	cout << "Введіть кількість валюти, яку хочете обміняти: ";
-	cin >> currval;
-	if (currval <= 0) {
-		cout << "Некоректно введена кількість валюти" << endl;
-		return 0;
-	}
-	currfr = matchStrCodeToInt(currfr);
-	currto = matchStrCodeToInt(currto);
+	int currval = 0;
+	string choice;
+	string currvalst;
+	int test = 0;
 
-	if (currfr == "" || currto == "") {
-		cout << "Невірно введені дані" << endl;
-		return 0;
-	}
-	float res = convertedCurr(data, currfr, currto, currval);
-	cout << "Валюта, яку ви отримаєте: " << res << endl;
+	do {
+		system("cls");
+		cout << "Доступні валюти: USD, EUR, UAH" << endl;
+		cout << "Введіть валюту, із якої будете конвертувати: ";
 
-	return 0;
+		getline(cin, currfr);
 
-	/*if (s.size() < 3) {
-			if (comco == 5) {
-				s.push_back(b.substr(pos2, pos1 - pos2));
-				pos2 = pos1 + 1;
-				comco = 0;
+		cout << "Введіть валюту, в яку будете конвертувати: ";
+		getline(cin, currto);
+
+		cout << "Введіть кількість валюти, яку хочете обміняти: ";
+		getline(cin, currvalst);
+		try {
+			currval = std::stoi(currvalst);
+		}
+		catch (std::exception) {
+			choice = repeat();
+			if (choice == "1") {
+				test = 1;
+				continue;
+			}
+			else{
+				break;
 			}
 		}
-		else if (s.size() >= 3) {
-			if (comco == 4) {
-				s.push_back(b.substr(pos2, pos1 - pos2));
-				pos2 = pos1 + 1;
-				comco = 0;
+
+		if (currval <= 0) {
+			choice = repeat();
+			if (choice == "1") {
+				test = 1;
+				continue;
 			}
-		}*/
+			else{
+				break;
+			}
+		}
+		currfr = matchStrCodeToInt(currfr);
+		currto = matchStrCodeToInt(currto);
+
+		if (currfr == "" || currto == "") {
+			choice = repeat();
+			if (choice == "1") {
+				test = 1;
+				continue;
+			}
+			else{
+				break;
+			}
+		}
+		float res = convertedCurr(data, currfr, currto, currval);
+		cout << "Валюта, яку ви отримаєте: " << res << endl;
+
+		cout << "\nБажаєте спробувати ще раз?\n1 - Спробувати ще раз\n2 - Вийти\nВвівши будь-яке інше значення програма завершиться" << endl;
+		getline(cin, choice);
+		if (choice == "1") {
+			test = 1;
+			continue;
+		}
+		else{
+			break;
+		}
+	} while (true);
+
+	return 0;
+}
+
+string repeat() {
+	string choice;
+	cout << "Невірно введені дані\n" << endl;
+	cout << "Бажаєте спробувати ще раз?\n1 - Спробувати ще раз\n2 - Вийти\nВвівши будь-яке інше значення програма завершиться" << endl;
+	getline(cin, choice);
+	return choice;
 }
 
 float convertedCurr(vector<string> data, string currfr, string currto, int currval) {
@@ -108,10 +147,7 @@ float convertedCurr(vector<string> data, string currfr, string currto, int currv
 string clrRes(string stToClr) {
 	stToClr.erase(stToClr.find("{"), 1);
 	stToClr.erase(stToClr.find("}"), 1);
-	
-	/*Тут такий момент, я не розумію чому, навіть якщо я видаляю " із рядка, то find все одно знаходить той символ
-	  Мені здається, що він не обновляє якось рядок, і він хоч і зберігається але find бере старий рядок
-	*/ 
+	 
 	while (stToClr.find("\\\"")) {
 		try {
 			stToClr.erase(stToClr.find("\""), 1);
@@ -127,7 +163,7 @@ string matchStrCodeToInt(string currCode) {
 	string arr[] = {"UAH:980", "USD:840", "EUR:978"};
 	for (string c : arr) {
 		int te = c.find(currCode);
-		if (c.find(currCode) != -1) {
+		if (c.find(currCode) != -1 && currCode != "") {
 			return c.substr(c.find(":") + 1, 3);
 		}
 	}
@@ -136,6 +172,12 @@ string matchStrCodeToInt(string currCode) {
 
 vector<string> formatedData() {
 	auto response = cpr::Get(cpr::Url{ "https://api.monobank.ua/bank/currency" });
+	while (response.text == "{\"errorDescription\":\"Too many requests\"}") {
+		system("cls");
+		cout << "Будь ласка, зачекайте кілька секунд, та натисність Enter" << endl;
+		cin.get();
+		response = cpr::Get(cpr::Url{ "https://api.monobank.ua/bank/currency" });
+	}
 	string b = response.text;
 	vector<string> s;
 	bool check;
@@ -167,20 +209,4 @@ vector<string> formatedData() {
 		}
 	}
 	return s;
-}
-
-void temp() {
-	string currfr;
-	string currto;
-	int currval;
-	cout << "Введіть валюту, із якої будете конвертувати: ";
-	cin >> currfr;
-	cout << "Введіть валюту, в яку будете конвертувати: ";
-	cin >> currto;
-	cout << "Введіть кількість валюти яку хочете обміняти: ";
-	cin >> currval;
-	if (currfr == "UAH" && currto == "USD") {
-		int res = currval * 36;
-		cout << "Конвертована кількість валюти: " << res;
-	}
 }
